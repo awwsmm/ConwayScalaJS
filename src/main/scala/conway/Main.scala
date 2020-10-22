@@ -15,9 +15,9 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val gameMap = randomMap(25, 50)
+    val gameMap = randomMap(50, 100)
 
-    val state = GameActor.State(gameMap, 20, 5, 50, logging)
+    val state = GameActor.State(gameMap, organismSize = 10, padding = 1, margin = 20, logging)
     val game = system.actorOf(GameActor.props(state, logging))
 
     document.addEventListener("DOMContentLoaded", (_: dom.Event) => {
