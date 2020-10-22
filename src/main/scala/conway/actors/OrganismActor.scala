@@ -6,24 +6,24 @@ import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.MouseEvent
 import scalatags.JsDom.all._
 
-case class OrganismActor(init: OrganismActor.State) extends Actor {
+case class OrganismActor(init: OrganismActor.State, logging: Boolean) extends Actor {
   import OrganismActor._
 
   private[this] var state: State = init
 
   override def receive: Receive = {
     case Die =>
-      println(s"organism at (${state.x}, ${state.y}) received command to Die")
+      if (logging) println(s"organism at (${state.x}, ${state.y}) received command to Die")
       state = state.copy(deadOrAlive = Dead)
       reRender()
 
     case Live =>
-      println(s"organism at (${state.x}, ${state.y}) received command to Live")
+      if (logging) println(s"organism at (${state.x}, ${state.y}) received command to Live")
       state = state.copy(deadOrAlive = Alive)
       reRender()
 
     case Toggle =>
-      println(s"organism at (${state.x}, ${state.y}) was Toggled")
+      if (logging) println(s"organism at (${state.x}, ${state.y}) was Toggled")
       state = state.copy(deadOrAlive = toggle(state.deadOrAlive))
       reRender()
 
@@ -32,7 +32,7 @@ case class OrganismActor(init: OrganismActor.State) extends Actor {
   }
 
   private def createChild(): Div = {
-    val color = if (state.deadOrAlive == Alive) "black" else "white"
+    val color = if (state.deadOrAlive == Alive) "black" else "#DDDDDD"
 
     val rendered = div(
       position := "absolute",
@@ -58,9 +58,7 @@ case class OrganismActor(init: OrganismActor.State) extends Actor {
   }
 
   private def reRender(): Unit = {
-    val newChild = createChild()
-    document.body.replaceChild(newChild, child)
-    child = newChild
+    child.style.backgroundColor = if (state.deadOrAlive == Alive) "black" else "#DDDDDD"
   }
 }
 
@@ -99,6 +97,6 @@ object OrganismActor {
 
   case class State(deadOrAlive: DeadOrAlive, x: Double, y: Double, size: Double)
 
-  def props(deadOrAlive: DeadOrAlive, x: Double, y: Double, size: Double): Props =
-    Props(new OrganismActor(State(deadOrAlive, x, y, size)))
+  def props(deadOrAlive: DeadOrAlive, x: Double, y: Double, size: Double, logging: Boolean): Props =
+    Props(new OrganismActor(State(deadOrAlive, x, y, size), logging))
 }
