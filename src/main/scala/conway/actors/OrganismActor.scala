@@ -66,25 +66,17 @@ object OrganismActor {
 
   sealed trait DeadOrAlive
 
-  object Dead extends DeadOrAlive {
-    override def toString: String = "Dead"
-  }
+  case object Dead extends DeadOrAlive
 
-  object Alive extends DeadOrAlive {
-    override def toString: String = "Alive"
-  }
+  case object Alive extends DeadOrAlive
 
   sealed trait Command
 
-  object Die extends Command {
-    override def toString: String = "Die"
-  }
+  case object Die extends Command
 
-  object Live extends Command {
-    override def toString: String = "Live"
-  }
+  case object Live extends Command
 
-  object Toggle extends Command
+  case object Toggle extends Command
 
   def toggle(deadOrAlive: DeadOrAlive): DeadOrAlive = deadOrAlive match {
     case Dead => Alive
@@ -93,7 +85,7 @@ object OrganismActor {
 
   sealed trait Query
 
-  object Poke extends Query
+  case object Poke extends Query
 
   case class State(deadOrAlive: DeadOrAlive, x: Double, y: Double, size: Double)
 

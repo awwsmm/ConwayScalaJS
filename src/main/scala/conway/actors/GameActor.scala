@@ -159,8 +159,8 @@ object GameActor {
 
   sealed trait Command
 
-  object Tick extends Command
+  case object Tick extends Command
 
-  object Toggle extends Command
+  case object Toggle extends Command
 }
 
