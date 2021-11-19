@@ -3,7 +3,8 @@ package conway
 import akka.actor.ActorSystem
 import conway.actors.GameActor
 import org.scalajs.dom
-import org.scalajs.dom.document
+import org.scalajs.dom.{document, window}
+import scalatags.JsDom.all._
 
 import scala.util.Random
 
@@ -15,14 +16,42 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val gameMap = randomMap(50, 100)
+    val organismSize = 40
+    val padding = 2
+    val margin = 100
 
-    val state = GameActor.State(gameMap, organismSize = 10, padding = 1, margin = 20, logging)
+    val nCols: Int = ((window.innerWidth - 2*margin) / (organismSize + padding)).toInt
+    val nRows: Int = ((window.innerHeight - 2*margin) / (organismSize + padding)).toInt
+
+    val gameMap = randomMap(nRows, nCols)
+    val state = GameActor.State(gameMap, organismSize, padding, margin, logging)
     val game = system.actorOf(GameActor.props(state, logging))
+
+    // help menu
+    val menu = div(
+      position := "absolute",
+      bottom := 20,
+      width := 500,
+      left := "50%",
+      marginLeft := -250,
+      textAlign := "center",
+
+      p("Click (or tap on mobile) on a square to change its color / state."),
+      div(
+        button("Tick",
+          onclick := { () => game ! GameActor.Tick }
+        ),
+        button("Toggle",
+          onclick := { () => game ! GameActor.Toggle }
+        ),
+      ),
+      p("Or, on desktop, press 't' to step, press 's' to toggle auto-stepping on / off.")
+    ).render
 
     document.addEventListener("DOMContentLoaded", (_: dom.Event) => {
       println(s"gameMap is\n$gameMap")
       state.organisms
+      document.body.appendChild(menu)
     })
 
     document.addEventListener("keydown", (k: dom.KeyboardEvent) => {

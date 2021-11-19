@@ -36,8 +36,8 @@ case class OrganismActor(init: OrganismActor.State, logging: Boolean) extends Ac
 
     val rendered = div(
       position := "absolute",
-      top := state.y - state.size / 2,
-      left := state.x - state.size / 2,
+      top := state.y,
+      left := state.x,
       width := state.size,
       height := state.size,
       backgroundColor := color
