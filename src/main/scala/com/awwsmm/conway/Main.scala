@@ -1,7 +1,8 @@
-package conway
+package com.awwsmm.conway
 
-import akka.actor.ActorSystem
-import conway.actors.GameActor
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.Behaviors
+import com.awwsmm.conway.actors.GameActor
 import org.scalajs.dom
 import org.scalajs.dom.{document, window}
 import scalatags.JsDom.all._
@@ -10,7 +11,7 @@ import scala.util.Random
 
 object Main {
 
-  implicit val system: ActorSystem = ActorSystem()
+  implicit val typedSystem: ActorSystem[Nothing] = ActorSystem[Nothing](Behaviors.ignore, "typedSystem")
 
   val logging: Boolean = false
 
@@ -24,8 +25,9 @@ object Main {
     val nRows: Int = ((window.innerHeight - 2*margin) / (organismSize + padding)).toInt
 
     val gameMap = randomMap(nRows, nCols)
-    val state = GameActor.State(gameMap, organismSize, padding, margin, logging)
-    val game = system.actorOf(GameActor.props(state, logging))
+    val typedState = GameActor.Landscape(gameMap)
+    val typedConfig = GameActor.Config(organismSize, padding, margin)
+    val typedGame = typedSystem.systemActorOf(GameActor(typedConfig, typedState), "gameActor")
 
     // help menu
     val menu = div(
@@ -39,10 +41,10 @@ object Main {
       p("Click (or tap on mobile) on a square to change its color / state."),
       div(
         button("Tick",
-          onclick := { () => game ! GameActor.Tick }
+            onclick := { () => typedGame ! GameActor.Tick }
         ),
         button("Toggle",
-          onclick := { () => game ! GameActor.Toggle }
+            onclick := { () => typedGame ! GameActor.Toggle }
         ),
       ),
       p("Or, on desktop, press 't' to step, press 's' to toggle auto-stepping on / off.")
@@ -50,24 +52,23 @@ object Main {
 
     document.addEventListener("DOMContentLoaded", (_: dom.Event) => {
       println(s"gameMap is\n$gameMap")
-      state.organisms
       document.body.appendChild(menu)
     })
 
     document.addEventListener("keydown", (k: dom.KeyboardEvent) => {
-      if (k.key == "t") game ! GameActor.Tick
-      if (k.key == "s") game ! GameActor.Toggle
+      if (k.key == "t") typedGame ! GameActor.Tick
+      if (k.key == "s") typedGame ! GameActor.Toggle
     })
   }
 
-  def randomMap (rows: Int, cols: Int): GameActor.GameMap = {
+  def randomMap (rows: Int, cols: Int): String = {
     def randomRow(): String = {
       val bools = (1 to cols).map(_ => Random.nextBoolean())
       val chars = bools.map(if (_) "_" else "X")
       chars mkString ""
     }
 
-    GameActor.GameMap((1 to rows).map(_ => randomRow()) mkString "\n")
+    (1 to rows).map(_ => randomRow()) mkString "\n"
   }
 
 }
